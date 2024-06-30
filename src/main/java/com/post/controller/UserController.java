@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import com.post.entity.Post;
 import com.post.entity.User;
+import com.post.entity.UserFollower;
 import com.post.service.UserService;
 
 @RestController
@@ -17,59 +18,41 @@ public class UserController {
    
 
     @Autowired
-    private  UserService userService;
+    private  UserService socialMediaService;
 
-    @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User createdUser = userService.createUser(user.getUsername());
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
-    }
+    @PostMapping("/create")
+	public User createUser(@RequestBody User user) {
+		return socialMediaService.createUser(user);
+	}
+	@PostMapping("/{userId}/create/post")
+	public Post createPost(@PathVariable Long userId, @RequestBody Post post) {
+		return socialMediaService.createPost(userId, post);
+	}
 
+	@DeleteMapping("/deletePost/{postId}")
+	public void deletePost(@PathVariable Long postId) {
+		socialMediaService.deletePost(postId);
+	}
 
-    @PostMapping("/{userId}/posts")
-    public ResponseEntity<Post> createPost(
-            @PathVariable Long userId,
-            @RequestBody Post postRequest) {
+	@PostMapping("/{userId}/follow/{followerId}")
+	public UserFollower follow(@PathVariable Long userId,@PathVariable Long followerId) {
+	return socialMediaService.follow(userId,followerId);
+	}
 
-        // Call UserService to create a post for the given userId
-        Post createdPost = userService.createPost(userId, postRequest.getContent());
+	@PostMapping("/{userId}/unfollow/{followerId}")
+	public void unfollow(@PathVariable Long userId,@PathVariable Long followerId) {
+	socialMediaService.unfollow(userId,followerId);
+	}
 
-        // Return a response entity with the created post and HTTP status 201 (Created)
-        return ResponseEntity.status(HttpStatus.CREATED).body(createdPost);
-    }
-
-
-    @DeleteMapping("/posts/{postId}")
-    public void deletePost(@PathVariable Long postId) {
-        userService.deletePost(postId);
-    }
-
-    @PostMapping("/{userId}/follow/{followUserId}")
-    public ResponseEntity<?> followUser(@PathVariable Long userId, @PathVariable Long followUserId) {
-        userService.followUser(userId, followUserId);
-        return ResponseEntity.ok().build();
-    }
-
-    @PostMapping("/{userId}/unfollow/{unfollowUserId}")
-    public ResponseEntity<?> unfollowUser(@PathVariable Long userId, @PathVariable Long unfollowUserId) {
-        userService.unfollowUser(userId, unfollowUserId);
-        return ResponseEntity.ok().build();
-    }
-    
-    
-    @GetMapping("/{userId}/newsfeed")
-    public ResponseEntity<List<Post>> getNewsFeed(@PathVariable Long userId) {
-        List<Post> newsFeed = userService.getNewsFeed(userId);
-        return ResponseEntity.ok().body(newsFeed);
-    }
-
-    @GetMapping("/{userId}/newsfeed/paginated")
-    public ResponseEntity<List<Post>> getNewsFeedPaginated(
-            @PathVariable Long userId,
-            @RequestParam(defaultValue = "1") Integer pageNumber) {
-        List<Post> newsFeed = userService.getNewsFeedPaginated(userId, pageNumber);
-        return ResponseEntity.ok().body(newsFeed);
-    }
-
+	@GetMapping("/{userId}/newsFeed")
+	public List<Post> newsFeed(@PathVariable Long userId){
+		return socialMediaService.getNewsFeed(userId);
+	}
+	
+	@GetMapping("/{userId}/newsFeed/paginated")
+	public List<Post> getNewsFeedPaginated(@PathVariable Long userId,@RequestParam(defaultValue = "1")  Integer pageNumber){
+		return socialMediaService.getNewsFeedPaginated(userId,pageNumber);
+		
+	}
 }
 

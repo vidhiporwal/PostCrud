@@ -31,34 +31,30 @@ public class UserServiceImpl implements UserService {
 
     
 
-    @Override
-    public User createUser(String username) {
-        User user = new User();
-        user.setUsername(username);
-        user.setCreatedAt(System.currentTimeMillis());
-        return userRepository.save(user);
-    }
+	@Override
+	public User createUser(User user) {
+		
+		User newUser = new User();
+		newUser.setUsername(user.getUsername());
+		newUser.setCreatedAt(System.currentTimeMillis());
+		return userRepository.save(newUser);
+	}
 
-    public Post createPost(Long userId, String content) {
-        // Find the user by userId
-        Optional<User> userOptional = userRepository.findById(userId);
+	@Override
+	public Post createPost(Long userId, Post post) {
+		Optional<User> Puser = userRepository.findById(userId);
+		if (!Puser.isPresent()) {
+			throw new RuntimeException("user does not exists");
+		}
 
-        if (!userOptional.isPresent()) {
-            throw new RuntimeException("User not found");
-        }
+		User user = Puser.get();
+		Post newpost = new Post();
+		newpost.setContent(post.getContent());
+		newpost.setCreatedAt(System.currentTimeMillis());
+		newpost.setUser(user);
 
-        // Get the user from Optional
-        User user = userOptional.get();
-
-        // Create a new post
-        Post post = new Post();
-        post.setContent(content);
-        post.setUser(user); // Set the user as the author of the post
-post.setCreatedAt(System.currentTimeMillis());
-        // Save the post
-        return postRepository.save(post);
-    }
-//test
+		return postRepository.save(newpost);
+	}
     @Override
     public void deletePost(Long postId) {
         Optional<Post> postOptional = postRepository.findById(postId);
@@ -70,7 +66,8 @@ post.setCreatedAt(System.currentTimeMillis());
     }
 
     
-    public void followUser(Long userId, Long followUserId) {
+    @Transactional
+    public UserFollower follow(Long userId, Long followUserId) {
         Optional<User> userOptional = userRepository.findById(userId);
         Optional<User> followUserOptional = userRepository.findById(followUserId);
 
@@ -87,14 +84,14 @@ post.setCreatedAt(System.currentTimeMillis());
             userFollower.setUser(user);
             userFollower.setFollower(followUser);
 
-            userFollowerRepository.save(userFollower);
+            return userFollowerRepository.save(userFollower);
         } else {
             throw new IllegalArgumentException("User or followUser not found");
         }
     }
 
-   
-    public void unfollowUser(Long userId, Long unfollowUserId) {
+    @Transactional
+    public void unfollow(Long userId, Long unfollowUserId) {
         Optional<User> userOptional = userRepository.findById(userId);
         Optional<User> unfollowUserOptional = userRepository.findById(unfollowUserId);
 
@@ -112,7 +109,6 @@ post.setCreatedAt(System.currentTimeMillis());
             throw new IllegalArgumentException("User or unfollowUser not found");
         }
     }
-    
 
     public List<Post> getNewsFeed(Long userId) {
         Optional<User> userOptional = userRepository.findById(userId);
@@ -153,6 +149,10 @@ post.setCreatedAt(System.currentTimeMillis());
 
         return postRepository.findByAuthorIdsOrderByCreatedAtDesc(userIdsToFollow, pageRequest);
     }
+
+	
+
+	
 
 }
 

@@ -16,10 +16,12 @@ public class UserFollower {
 
     @ManyToOne
     @JoinColumn(name = "user_id")
+   
     private User user;
 
     @ManyToOne
     @JoinColumn(name = "follower_id")
+    
     private User follower;
 
     // Getters, setters, constructors, and other methods as needed
